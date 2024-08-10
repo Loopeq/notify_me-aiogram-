@@ -7,7 +7,6 @@ from pathlib import Path
 
 from aiosqlite import cursor, Cursor
 
-from logger_config import logger
 
 from src.models import UserDTO, NotificationDTO, NotificationGetDTO, RunningSessionDTO, RunningSessionGetDTO
 
@@ -79,8 +78,9 @@ class ORM(object):
                 )
 
                 await db.commit()
+
             except Exception as error:
-                logger.exception(error)
+                pass
 
     @staticmethod
     async def select_user_language(user_id: int):
@@ -103,9 +103,8 @@ class ORM(object):
                 await db.commit()
                 return not_id
 
-
             except Exception as error:
-                logger.exception(error)
+                pass
 
     @staticmethod
     async def select_user_notifications(user_id: int) -> List[NotificationGetDTO]:
@@ -132,7 +131,7 @@ class ORM(object):
     async def update_running_session(session: RunningSessionDTO):
         async with aiosqlite.connect(database=DB_PATH) as db:
             await db.execute(
-                "INSERT INTO RunningSession(user_id, notification_id, created_at) VALUES(?, ?, ?)",
+                "INSERT OR REPLACE INTO RunningSession(user_id, notification_id, created_at) VALUES(?, ?, ?)",
                 (session.user_id, session.notification_id, session.created_at)
             )
             await db.commit()
@@ -164,12 +163,10 @@ class ORM(object):
             await db.commit()
 
 
-
 async def get_logg():
     await ORM.setup()
 
     result = await ORM.select_user_notifications(user_id=103)
-    logger.info(result)
 
 
 if __name__ == "__main__":

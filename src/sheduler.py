@@ -12,7 +12,7 @@ async def send_notification(bot: Bot, user_id: int, message: str):
 
 async def run_scheduler(minutes: int, title: str, bot: Bot, user_id: int):
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(send_notification, 'interval', seconds=minutes, args=(bot, user_id, title))
+    scheduler.add_job(send_notification, 'interval', minutes=minutes, args=(bot, user_id, title))
     scheduler.start()
 
     while True:
