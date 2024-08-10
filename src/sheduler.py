@@ -7,7 +7,7 @@ from src.database import ORM
 
 
 async def send_notification(bot: Bot, user_id: int, message: str):
-    await bot.send_message(chat_id=user_id, text=message)
+    await bot.send_message(chat_id=user_id, text=f"🔔 {message}")
 
 
 async def run_scheduler(minutes: int, title: str, bot: Bot, user_id: int):

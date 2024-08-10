@@ -7,8 +7,7 @@ from aiogram.types import Message
 
 from src.database import ORM
 from src.keyboards import notification_interval_kb, main_menu_kb
-from src.models import NotificationDTO, RunningSessionDTO
-from src.sheduler import run_scheduler
+from src.models import NotificationDTO
 from src.strings import strings
 
 router = Router()
@@ -28,30 +27,30 @@ async def add_notification(message: Message, state: FSMContext):
 
 @router.message(F.text, AddNotification.minutes)
 async def get_notification_minutes(message: Message, state: FSMContext):
-
+    lang = await ORM.select_user_language(user_id=message.from_user.id)
     minutes = message.text.replace("m", "")
     if not minutes.isdigit():
-        await message.answer('Введите кол-во минут без дополнительных символов:')
+        await message.answer(strings[lang]['add_not_expt'])
         return
 
     if not int(minutes) in range(1, 500):
-        await message.answer('Введите значение в пределе от 1мин до 500мин:')
+        await message.answer(strings[lang]['add_not_interval'])
         return
     else:
-        await message.answer('Введите текст, который будет приходить в уведомлении:',
+        await message.answer(strings[lang]["add_not_ph"],
                              reply_markup=types.ReplyKeyboardRemove())
         await state.update_data(minutes=minutes)
         await state.set_state(AddNotification.title)
 
 
 @router.message(F.text, AddNotification.title)
-async def get_notification_title(message: Message, state: FSMContext, bot: Bot):
+async def get_notification_title(message: Message, state: FSMContext):
 
     title_length = 50
     lang = await ORM.select_user_language(user_id=message.from_user.id)
 
     if len(message.text) > title_length:
-        await message.answer("Ваше сообщение слишком длинное (>50 символов)")
+        await message.answer(strings[lang]['add_not_len_expt'])
         return
 
     data = await state.get_data()
@@ -61,10 +60,7 @@ async def get_notification_title(message: Message, state: FSMContext, bot: Bot):
                                    minutes=int(minutes),
                                    title=title,
                                    created_at=datetime.datetime.utcnow())
-    not_id = await ORM.insert_notification(notification=notification)
+    await ORM.insert_notification(notification=notification)
     await state.clear()
-    await message.answer(f"Уведомление сработает через {notification.minutes} минут с сообщением:\n"
-                         f"{notification.title}", reply_markup=main_menu_kb(lang=lang))
-    await ORM.update_running_session(RunningSessionDTO(user_id=message.from_user.id, notification_id=not_id,
-                                                       created_at=datetime.datetime.utcnow()))
-    await run_scheduler(minutes=int(minutes), title=title, bot=bot, user_id=message.from_user.id)
+    await message.answer(strings[lang]['not_ready'].format(notification.title, notification.minutes),
+                         reply_markup=main_menu_kb(lang=lang))

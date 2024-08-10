@@ -156,6 +156,14 @@ class ORM(object):
                              (user_id,))
             await db.commit()
 
+    @staticmethod
+    async def delete_notification_by_id(not_id: int):
+        async with aiosqlite.connect(database=DB_PATH) as db:
+            await db.execute("DELETE FROM Notifications WHERE id=?",
+                             (not_id, ))
+            await db.commit()
+
+
 
 async def get_logg():
     await ORM.setup()

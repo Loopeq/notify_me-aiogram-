@@ -1,3 +1,4 @@
+import enum
 from typing import List
 
 from aiogram import types
@@ -26,7 +27,7 @@ def select_language_kb():
 
 
 def main_menu_kb(lang: str, is_current_exist: bool = True):
-    phrases = strings[lang]['main']
+    phrases = strings[lang]['not_list']
     buttons = [
         [
             types.KeyboardButton(text=phrases['add']),
@@ -54,14 +55,23 @@ def notification_interval_kb():
     return keyboard
 
 
+class NotificationCBActions(enum.Enum):
+    SHOW = "show"
+    DELETE = 'delete'
+
+
 class NotificationCallbackData(CallbackData, prefix="not"):
+    action: NotificationCBActions
     not_id: int
 
 
 def notification_list_kb(notifications: List[NotificationGetDTO]):
     buttons = [
         [types.InlineKeyboardButton(text=f"[Every {notification.minutes}m] - {notification.title}",
-                                    callback_data=NotificationCallbackData(not_id=notification.id).pack())]
+                                    callback_data=NotificationCallbackData(not_id=notification.id,
+                                                                           action=NotificationCBActions.SHOW).pack()),
+         types.InlineKeyboardButton(text="❌", callback_data=NotificationCallbackData(not_id=notification.id,
+                                                                                     action=NotificationCBActions.DELETE).pack())]
         for notification in notifications
     ]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
