@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 import logging
 
-DEV_MODE = False
+DEV_MODE = True
 
 
 logger = logging.getLogger(__name__)

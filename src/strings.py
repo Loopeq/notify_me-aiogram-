@@ -28,7 +28,8 @@ strings = {
         'text_placeholder': 'Например: "Хватит работать!"',
         'session_count_expt': 'За раз вы можете запустить только 3 уведомления.',
         'launched': '🔔Запущено ',
-        'canceled': '❌Отменено'
+        'canceled': '❌Отменено',
+        'contact': 'Жалобы и предложения',
     },
     Languages.EN.value: {
         "greeting": "create your first reminder✏️, ",
@@ -47,6 +48,7 @@ strings = {
         'session_count_expt': 'You can only run 3 notifications at a time. ',
         'launched': '🔔Started ',
         'canceled': '❌Cancelled',
+        'contact': 'Complaints and suggestions'
     }
 }
 

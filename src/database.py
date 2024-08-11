@@ -172,7 +172,6 @@ class ORM(object):
             await ORM.kill_running_session(notification_id=not_id)
 
 
-
 async def get_logg():
     await ORM.setup()
 

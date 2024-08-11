@@ -74,7 +74,8 @@ async def get_notification_title(message: Message, state: FSMContext,
     await state.clear()
 
     await run_notification(bot=bot, user_id=message.from_user.id,
-                           not_id=not_id, notification=notification)
+                           not_id=not_id, notification=notification,
+                           kb_can_be_deleted=True)
 
 
 

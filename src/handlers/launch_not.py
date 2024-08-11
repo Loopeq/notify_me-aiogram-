@@ -16,7 +16,8 @@ router = Router()
 async def run_notification(bot: Bot,
                            user_id: int,
                            not_id: int,
-                           notification: NotificationDTO):
+                           notification: NotificationDTO,
+                           kb_can_be_deleted: bool = True):
     can_be_running = await ORM.update_running_session(session=RunningSessionDTO(user_id=user_id,
                                                                                 notification_id=not_id,
                                                                                 created_at=datetime.datetime.utcnow()))
@@ -28,6 +29,10 @@ async def run_notification(bot: Bot,
 
     message = await bot.send_message(chat_id=user_id,
                                      text=f'{strings[lang]["launched"]} - [{notification.minutes}m - {notification.title}]')
+    if kb_can_be_deleted:
+        message_to_delete = await bot.send_message(chat_id=user_id, text='...',
+                                                   reply_markup=ReplyKeyboardRemove())
+        await bot.delete_message(chat_id=user_id, message_id=message_to_delete.message_id)
     await bot.edit_message_reply_markup(chat_id=user_id, message_id=message.message_id,
                                         reply_markup=kill_running_notification_button(message_id=message.message_id,
                                                                                       not_id=not_id))
@@ -60,7 +65,7 @@ async def launch_notification(callback: CallbackQuery, callback_data: Notificati
         await callback.answer()
 
         await run_notification(bot=bot, user_id=callback.from_user.id,
-                               not_id=not_id, notification=notification)
+                               not_id=not_id, notification=notification, kb_can_be_deleted=False)
     elif callback_data.action == NotificationCBActions.DELETE:
         await ORM.delete_notification_by_id(not_id=not_id)
         notifications = await ORM.select_user_notifications(user_id=callback.from_user.id)

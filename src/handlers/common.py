@@ -1,7 +1,7 @@
 import datetime
 
 from aiogram import Router, types, Bot
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 
 from aiogram.types import Message
 from ..bot_config import set_main_menu, BotCommands
@@ -15,9 +15,15 @@ router = Router()
 
 @router.message(CommandStart())
 async def cmd_start(message: Message, bot: Bot):
+    await set_main_menu(bot=bot)
     await message.answer(text=strings['common']['select_lang'],
                          reply_markup=select_language_kb())
-    await set_main_menu(bot=bot)
+
+
+@router.message(Command(BotCommands.INFO.value))
+async def cmd_info(message: Message):
+    lang = await ORM.select_user_language(user_id=message.from_user.id)
+    await message.answer(f'@indigridient - {strings[lang]["contact"]}')
 
 
 @router.callback_query(LanguageCallbackData.filter())
