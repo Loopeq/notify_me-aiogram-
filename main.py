@@ -12,7 +12,6 @@ async def main():
     await ORM.setup()
 
     dp.include_routers(common_router, add_not, launch_not)
-
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 

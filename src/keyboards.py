@@ -26,32 +26,15 @@ def select_language_kb():
     return keyboard
 
 
-def main_menu_kb(lang: str, is_current_exist: bool = True):
-    phrases = strings[lang]['not_list']
+def notification_interval_kb(lang: str):
     buttons = [
-        [
-            types.KeyboardButton(text=phrases['add']),
-            types.KeyboardButton(text=phrases['all']),
-        ],
-        [
-            types.KeyboardButton(text=phrases['stop_current'] if is_current_exist else phrases['no_current'])
-        ]
-    ]
-
-    keyboard = types.ReplyKeyboardMarkup(keyboard=buttons,
-                                         resize_keyboard=True,
-                                         is_persistent=True)
-    return keyboard
-
-
-def notification_interval_kb():
-    buttons = [
-        [types.KeyboardButton(text=f'{j}m') for j in range(5, 25, 5)],
-        [types.KeyboardButton(text=f'{j}m') for j in range(25, 65, 5)],
+        [types.KeyboardButton(text=f'{j}m') for j in range(5, 35, 5)],
+        [types.KeyboardButton(text=f"{strings[lang]['cancel']}")]
     ]
 
     keyboard = types.ReplyKeyboardMarkup(keyboard=buttons, resize_keyboard=True,
-                                         is_persistent=False)
+                                         input_field_placeholder=strings[lang]['min_placeholder'],
+                                         is_persistent=True)
     return keyboard
 
 
@@ -76,4 +59,28 @@ def notification_list_kb(notifications: List[NotificationGetDTO]):
     ]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
+
+
+def cancel_create_notification_button(lang: str):
+    button = [
+        [types.KeyboardButton(text=f"{strings[lang]['cancel']}")]
+    ]
+
+    return types.ReplyKeyboardMarkup(keyboard=button, resize_keyboard=True,
+                                     is_persistent=True)
+
+
+class ProcessKillerCallbackData(CallbackData, prefix='stop_not'):
+    message_id: int
+    not_id: int
+
+
+def kill_running_notification_button(message_id: int, not_id: int):
+    button = [
+        [types.InlineKeyboardButton(text=strings['common']['stop_notification'],
+                                    callback_data=ProcessKillerCallbackData(message_id=message_id,
+                                                                            not_id=not_id).pack())]
+    ]
+    return types.InlineKeyboardMarkup(inline_keyboard=button)
+
 
