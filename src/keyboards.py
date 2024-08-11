@@ -72,12 +72,14 @@ def cancel_create_notification_button(lang: str):
 
 class ProcessKillerCallbackData(CallbackData, prefix='stop_not'):
     message_id: int
+    not_id: int
 
 
-def kill_running_notification_button(message_id: int):
+def kill_running_notification_button(message_id: int, not_id: int):
     button = [
         [types.InlineKeyboardButton(text=strings['common']['stop_notification'],
-                                    callback_data=ProcessKillerCallbackData(message_id=message_id).pack())]
+                                    callback_data=ProcessKillerCallbackData(message_id=message_id,
+                                                                            not_id=not_id).pack())]
     ]
     return types.InlineKeyboardMarkup(inline_keyboard=button)
 

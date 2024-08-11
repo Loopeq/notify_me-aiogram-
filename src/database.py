@@ -7,7 +7,7 @@ from pathlib import Path
 
 from aiosqlite import cursor, Cursor
 
-
+from settings import logger
 from src.models import UserDTO, NotificationDTO, NotificationGetDTO, RunningSessionDTO, RunningSessionGetDTO
 
 CURRENT_PATH = Path(__file__).resolve()
@@ -44,7 +44,7 @@ class ORM(object):
             await db.execute(
                 """CREATE TABLE IF NOT EXISTS RunningSession(
                 id INTEGER PRIMARY KEY,
-                user_id INTEGER NOT NULL UNIQUE,
+                user_id INTEGER NOT NULL,
                 notification_id NOT NULL UNIQUE,
                 created_at TIMESTAMP,
                 FOREIGN KEY(user_id) REFERENCES UserConfig(user_id),
@@ -128,13 +128,21 @@ class ORM(object):
                                       title=notification[3], created_at=notification[4])
 
     @staticmethod
-    async def update_running_session(session: RunningSessionDTO):
+    async def update_running_session(session: RunningSessionDTO,
+                                     max_user_sessions: int = 3) -> bool:
         async with aiosqlite.connect(database=DB_PATH) as db:
-            await db.execute(
-                "INSERT OR REPLACE INTO RunningSession(user_id, notification_id, created_at) VALUES(?, ?, ?)",
-                (session.user_id, session.notification_id, session.created_at)
-            )
-            await db.commit()
+            conn: Cursor = await db.execute('SELECT * FROM RunningSession WHERE user_id = ?',
+                                            (session.user_id,))
+            sessions = await conn.fetchall()
+            sessions = list(sessions)
+            if len(sessions) <= max_user_sessions - 1:
+                await db.execute(
+                    "INSERT INTO RunningSession(user_id, notification_id, created_at) VALUES(?, ?, ?)",
+                    (session.user_id, session.notification_id, session.created_at)
+                )
+                await db.commit()
+                return True
+            return False
 
     @staticmethod
     async def get_running_session(user_id: int) -> RunningSessionGetDTO | None:
@@ -149,24 +157,24 @@ class ORM(object):
                                         created_at=notification[3])
 
     @staticmethod
-    async def kill_running_session(user_id: int):
+    async def kill_running_session(notification_id: int):
         async with aiosqlite.connect(database=DB_PATH) as db:
-            await db.execute("DELETE FROM RunningSession WHERE user_id=?",
-                             (user_id,))
+            await db.execute("DELETE FROM RunningSession WHERE notification_id=?",
+                             (notification_id, ))
             await db.commit()
 
     @staticmethod
     async def delete_notification_by_id(not_id: int):
         async with aiosqlite.connect(database=DB_PATH) as db:
             await db.execute("DELETE FROM Notifications WHERE id=?",
-                             (not_id, ))
+                             (not_id,))
             await db.commit()
+            await ORM.kill_running_session(notification_id=not_id)
+
 
 
 async def get_logg():
     await ORM.setup()
-
-    result = await ORM.select_user_notifications(user_id=103)
 
 
 if __name__ == "__main__":

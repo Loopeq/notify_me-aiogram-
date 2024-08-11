@@ -8,9 +8,9 @@ from settings import settings
 
 
 class BotCommands(enum.Enum):
-    ADD_NOT = "add_not"
-    LAUNCH_NOT = "launch_not"
-    INFO = "info"
+    ADD_NOT = "create_notify"
+    LAUNCH_NOT = "start_notifications"
+    INFO = "support"
 
 
 _NOTIFY_COMMANDS_EN: dict[str, str] = {

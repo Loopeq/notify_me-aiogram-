@@ -26,6 +26,9 @@ strings = {
         'nothing_to_launch': "🧐 Запускать нечего, сначала создайте напоминание, ",
         'min_placeholder': 'Только число минут без доп. символов',
         'text_placeholder': 'Например: "Хватит работать!"',
+        'session_count_expt': 'За раз вы можете запустить только 3 уведомления.',
+        'launched': '🔔Запущено ',
+        'canceled': '❌Отменено'
     },
     Languages.EN.value: {
         "greeting": "create your first reminder✏️, ",
@@ -41,6 +44,9 @@ strings = {
         'nothing_to_launch': "🧐 Nothing to run, first create a reminder, ",
         'min_placeholder': 'Only number of minutes without add. characters',
         'text_placeholder': 'For example: "Stop working!"',
+        'session_count_expt': 'You can only run 3 notifications at a time. ',
+        'launched': '🔔Started ',
+        'canceled': '❌Cancelled',
     }
 }
 
