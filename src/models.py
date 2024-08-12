@@ -23,14 +23,6 @@ class NotificationDTO(BaseModel):
 
 class NotificationGetDTO(NotificationDTO):
     id: int
-# """CREATE TABLE IF NOT EXISTS RunningSession(
-# id INTEGER NOT NULL,
-# user_id INTEGER NOT NULL UNIQUE,
-# notification_id NOT NULL UNIQUE,
-# created_at TIMESTAMP,
-# FOREIGN KEY(user_id) REFERENCES UserConfig(user_id),
-# FOREIGN KEY(notification_id) REFERENCES Notifications(id))
-
 
 class RunningSessionDTO(BaseModel):
     user_id: int

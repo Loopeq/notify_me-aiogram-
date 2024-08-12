@@ -171,6 +171,13 @@ class ORM(object):
             await db.commit()
             await ORM.kill_running_session(notification_id=not_id)
 
+    @staticmethod
+    async def select_user_count():
+        async with aiosqlite.connect(database=DB_PATH) as db:
+            conn = await db.execute("SELECT COUNT(*) FROM UserConfig")
+            count = await conn.fetchone()
+            return count[0]
+
 
 async def get_logg():
     await ORM.setup()

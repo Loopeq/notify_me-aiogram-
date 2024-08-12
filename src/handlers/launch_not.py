@@ -45,6 +45,7 @@ async def run_notification(bot: Bot,
 
 @router.message(Command(BotCommands.LAUNCH_NOT.value))
 async def show_notifications(message: Message):
+
     notifications = await ORM.select_user_notifications(user_id=message.from_user.id)
     lang = await ORM.select_user_language(user_id=message.from_user.id)
     if notifications:
