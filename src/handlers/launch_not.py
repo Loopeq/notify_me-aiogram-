@@ -40,7 +40,7 @@ async def run_notification(bot: Bot,
                                disable_notification=False)
 
     await run_scheduler(minutes=notification.minutes, title=notification.title, bot=bot,
-                        user_id=user_id)
+                        user_id=user_id, not_id=not_id)
 
 
 @router.message(Command(BotCommands.LAUNCH_NOT.value))

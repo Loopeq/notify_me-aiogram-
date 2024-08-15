@@ -1,14 +1,13 @@
 import asyncio
 import datetime
 from typing import List
-
 import aiosqlite
 from pathlib import Path
-
 from aiosqlite import cursor, Cursor
 
 from settings import logger
-from src.models import UserDTO, NotificationDTO, NotificationGetDTO, RunningSessionDTO, RunningSessionGetDTO
+from src.models import UserDTO, NotificationDTO, NotificationGetDTO, RunningSessionDTO, RunningSessionGetDTO, \
+    SessionTimeDeltaDTO
 
 CURRENT_PATH = Path(__file__).resolve()
 ROOT = CURRENT_PATH.parent.parent
@@ -45,11 +44,23 @@ class ORM(object):
                 """CREATE TABLE IF NOT EXISTS RunningSession(
                 id INTEGER PRIMARY KEY,
                 user_id INTEGER NOT NULL,
-                notification_id NOT NULL UNIQUE,
+                notification_id INTEGER NOT NULL UNIQUE,
                 created_at TIMESTAMP,
                 FOREIGN KEY(user_id) REFERENCES UserConfig(user_id),
                 FOREIGN KEY(notification_id) REFERENCES Notifications(id))
                 """
+            )
+
+            await db.execute(
+                """CREATE TABLE IF NOT EXISTS SessionTimeDelta(
+                id INTEGER PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                notification_id INTEGER NOT NULL UNIQUE,
+                minutes INTEGER NOT NULL,
+                created_at DATETIME NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES UserConfig(user_id),
+                FOREIGN KEY(notification_id) REFERENCES Notifications(id) 
+                )"""
             )
             await db.commit()
 
@@ -160,12 +171,16 @@ class ORM(object):
     async def kill_running_session(notification_id: int):
         async with aiosqlite.connect(database=DB_PATH) as db:
             await db.execute("DELETE FROM RunningSession WHERE notification_id=?",
-                             (notification_id, ))
+                             (notification_id,))
             await db.commit()
 
     @staticmethod
     async def delete_notification_by_id(not_id: int):
         async with aiosqlite.connect(database=DB_PATH) as db:
+            conn = await db.execute("SELECT user_id FROM Notifications WHERE id=?",
+                                    (not_id, ))
+            user_id = await conn.fetchone()
+            await ORM.delete_session_time_delta(user_id=user_id[0], notification_id=not_id)
             await db.execute("DELETE FROM Notifications WHERE id=?",
                              (not_id,))
             await db.commit()
@@ -178,10 +193,57 @@ class ORM(object):
             count = await conn.fetchone()
             return count[0]
 
+    @staticmethod
+    async def update_session_time_delta(session_time_delta: SessionTimeDeltaDTO):
+        minutes = session_time_delta.minutes
+        async with aiosqlite.connect(database=DB_PATH) as db:
+            conn = await db.execute("SELECT created_at FROM SessionTimeDelta WHERE user_id=? AND notification_id=?",
+                                    (session_time_delta.user_id, session_time_delta.notification_id,))
+            created_at = await conn.fetchone()
+            if not created_at:
+                await db.execute("INSERT INTO SessionTimeDelta(user_id, notification_id, minutes, "
+                                 "created_at) VALUES (?, ?, ?, ?)",
+                                 (session_time_delta.user_id,
+                                  session_time_delta.notification_id,
+                                  session_time_delta.minutes,
+                                  session_time_delta.created_at))
+                await db.commit()
+                return
+
+            created_at = datetime.datetime.fromisoformat(created_at[0]).date()
+            if created_at == datetime.datetime.utcnow().date():
+                conn = await db.execute('SELECT minutes FROM SessionTimeDelta WHERE user_id=? AND notification_id=?',
+                                        (session_time_delta.user_id, session_time_delta.notification_id))
+                curr_minutes = await conn.fetchone()
+                minutes = curr_minutes[0] + session_time_delta.minutes
+            await db.execute("UPDATE SessionTimeDelta set minutes=? WHERE user_id=? AND "
+                             "notification_id=?",
+                             (minutes, session_time_delta.user_id, session_time_delta.notification_id,))
+            await db.commit()
+
+    @staticmethod
+    async def delete_session_time_delta(user_id: int, notification_id: int):
+        async with aiosqlite.connect(database=DB_PATH) as db:
+            await db.execute("DELETE FROM SessionTimeDelta WHERE user_id=? AND notification_id=?",
+                             (user_id, notification_id, ))
+            await db.commit()
+
+    @staticmethod
+    async def select_session_time_delta(user_id: int, notification_id: int):
+        async with aiosqlite.connect(database=DB_PATH) as db:
+            conn = await db.execute("SELECT minutes FROM sessionTimeDelta WHERE user_id=? AND notification_id=?",
+                             (user_id, notification_id, ))
+
+            minutes = await conn.fetchone()
+
+            if not minutes:
+                return
+
+            return minutes[0]
+
 
 async def get_logg():
     await ORM.setup()
-
 
 if __name__ == "__main__":
     asyncio.run(get_logg())

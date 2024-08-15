@@ -24,6 +24,7 @@ class NotificationDTO(BaseModel):
 class NotificationGetDTO(NotificationDTO):
     id: int
 
+
 class RunningSessionDTO(BaseModel):
     user_id: int
     notification_id: int
@@ -34,3 +35,12 @@ class RunningSessionGetDTO(RunningSessionDTO):
     id: int
 
 
+class SessionTimeDeltaDTO(BaseModel):
+    user_id: int
+    notification_id: int
+    minutes: int
+    created_at: datetime.datetime
+
+
+class SessionTimeDeltaGetDTO(SessionTimeDeltaDTO):
+    id: int
