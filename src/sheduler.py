@@ -1,11 +1,9 @@
 import asyncio
 import datetime
 import math
-from typing import List
 
 from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from pydantic import BaseModel
 
 from src.database import ORM
 from src.models import SessionTimeDeltaDTO

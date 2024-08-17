@@ -216,9 +216,9 @@ class ORM(object):
                                         (session_time_delta.user_id, session_time_delta.notification_id))
                 curr_minutes = await conn.fetchone()
                 minutes = curr_minutes[0] + session_time_delta.minutes
-            await db.execute("UPDATE SessionTimeDelta set minutes=? WHERE user_id=? AND "
+            await db.execute("UPDATE SessionTimeDelta set minutes=?, created_at=? WHERE user_id=? AND "
                              "notification_id=?",
-                             (minutes, session_time_delta.user_id, session_time_delta.notification_id,))
+                             (minutes, datetime.datetime.utcnow(), session_time_delta.user_id, session_time_delta.notification_id,))
             await db.commit()
 
     @staticmethod
